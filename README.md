@@ -83,9 +83,9 @@ I define a command to annotate easily:
 
 ## Alignment
 
-If you draw a block `(a)`, and then a block `(b)` using `right=3cm of a` option in tikzlibrary `positioning`,  by default `(a)` and `(b)` are central aligned in $x$ axis of the $3d$ space.
+If you draw a block `(a)`, and then a block `(b)` using `right=3cm of a` option in tikzlibrary `positioning`,  by default `(a)` and `(b)` are central aligned in x​ axis of the ​3d space.
 
-Primarily, I have implement the basic alignment in $x$ axis by setting
+Primarily, I have implement the basic alignment in x axis by setting
 
 ```
 block={pre=<node name>, align=<align specification}
