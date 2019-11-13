@@ -1,16 +1,22 @@
 # dnnplot
 Plot 3d blocks in deep neural networks. Less code, better performance and easier control.
 
-## Note
+## Load package
 
-`dnnplot` does not load `tikz` automatically. You need to load it manully.
+Add the code below to the preamble.
 
-## Basic use
+```tex
+\usepackage{dnnplot}
+```
+
+**Note**: `dnnplot` does not load `tikz` automatically. You need to load it manully.
+
+## Basic usage
 
 Blocks’ placement is arranged as below. And you are suppose to draw blocks from left to right, down to up and back to front, which are posit directions of x, y,​ and ​z​ axes respectly.
 
 <p align="center">
-<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_main.png" alt="Basic use"  height="250">
+<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_main.png" alt="Basic use"  width="250">
 	<p align="center">
 		<em>parameter arrangement</em>
 	</p>
@@ -37,7 +43,7 @@ Here is a primary example (MWE):
 We plot a base 3d block. And we use `back plot` option to allow hidden edges to be shown as dashed line.
 
 <p align="center">
-<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_base.png" alt="Basic use"  height="250">
+<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_base.png" alt="Basic use"  hwidth"250">
 	<p align="center">
 		<em>plot base block</em>
 	</p>
@@ -48,7 +54,7 @@ We plot a base 3d block. And we use `back plot` option to allow hidden edges to 
 A variety of anchors have been defined. They are all shown as below.
 
 <p align="center">
-<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_anchor.png" alt="Anchors"  height="400">
+<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_anchor.png" alt="Anchors"  hewidth400">
 	<p align="center">
 		<em>anchors</em>
 	</p>
@@ -75,7 +81,7 @@ I define a command to annotate easily:
   **Note: no semicolon is needed in this command!**
 
 <p align="center">
-	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_annotation.png" alt="Labels"  height="400">
+	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_annotation.png" alt="Labels"  heiwidth00">
 	<p align="center">
 		<em>annotation</em>
 	</p>
@@ -83,7 +89,7 @@ I define a command to annotate easily:
 
 ## Alignment
 
-If you draw a block `(a)`, and then a block `(b)` using `right=3cm of a` option in tikzlibrary `positioning`,  by default `(a)` and `(b)` are central aligned in x​ axis of the ​3d space.
+If you draw a block `(a)`, and then a block `(b)` using `right=3cm of a` option in tikzlibrary `positioning`,  by default `(a)` and `(b)` are central aligned in x axis of the 3d space.
 
 Primarily, I have implement the basic alignment in x axis by setting
 
@@ -102,7 +108,7 @@ in node option.
   **Note: if a wrong node name or specification is passed, the block is drawn in situ.**
 
 <p align="center">
-	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_align.png" alt="Alignment"  height="400">
+	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_align.png" alt="Alignment"  width="400">
 	<p align="center">
 		<em>alignment</em>
 	</p>
@@ -120,5 +126,5 @@ in node option.
 
 ## To be added...
 
-1. Shifting in z​ axis
+1. Shifting in z axis
 2. Arbitrary alignment
