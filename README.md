@@ -7,7 +7,7 @@ Plot 3d blocks in deep neural networks. Less code, better performance and easier
 
 ## Basic use
 
-Blocks’ placement is arranged as below. And you are suppose to draw blocks from left to right, down to up and back to front, which are posit directions of $x, y,$ and $z$ axes respectly.
+Blocks’ placement is arranged as below. And you are suppose to draw blocks from left to right, down to up and back to front, which are posit directions of x, y,​ and ​z​ axes respectly.
 
 <p align="center">
 <img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_main.png" alt="Basic use"  height="250">
@@ -69,7 +69,10 @@ I define a command to annotate easily:
 - `<text>`: text to be shown in the node.
 
 - `<optional style>`: all the arguments are passed to the text node. If it is empty, default position of the label are set.  Options like `near start` also work.
-**Note: no semicolon is needed in this command!**
+
+  
+
+  **Note: no semicolon is needed in this command!**
 
 <p align="center">
 	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_annotation.png" alt="Labels"  height="400">
@@ -91,7 +94,11 @@ block={pre=<node name>, align=<align specification}
 in node option.
 
 - `<node name>`: name of the defined node.
+
 - `<align specification>`: specify the style of the alignment. Now it supports `xleft, xright, xup, xdown`, which means applying alignment along the corresponding edge of previous node.
+
+  
+
   **Note: if a wrong node name or specification is passed, the block is drawn in situ.**
 
 <p align="center">
@@ -113,6 +120,5 @@ in node option.
 
 ## To be added...
 
-1. Shifting in $z$ axis
+1. Shifting in z​ axis
 2. Arbitrary alignment
-
