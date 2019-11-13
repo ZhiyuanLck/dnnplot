@@ -1,0 +1,251 @@
+\ProvidesPackage{dnnplot}
+\RequirePackage{pdftexcmds}
+\usetikzlibrary{math, calc}
+
+\makeatletter
+\let\pdfstrcmp=\pdf@strcmp
+\pgfkeys{/block plot/.cd,
+  width/.store in=\block@width, width=1cm,
+  height/.store in=\block@height, height=1cm,
+  channel/.store in=\block@channel, channel=1cm,
+  scale/.store in=\block@scale, scale=.1,
+  pre/.store in=\block@pre, pre=,
+  align/.store in=\block@align, align=,
+  back plot/.store in=\block@back@plot, back plot=,
+  back plot/.default=true,
+}
+
+\pgfdeclareshape{base block}
+{
+  \inheritsavedanchors[from=rectangle]
+  \inheritanchorborder[from=rectangle]
+  \inheritanchor[from=rectangle]{center}
+  \inheritanchor[from=rectangle]{north}
+  \inheritanchor[from=rectangle]{south}
+  \inheritanchor[from=rectangle]{east}
+  \inheritanchor[from=rectangle]{west}
+  \inheritanchor[from=rectangle]{north east}
+  \inheritanchor[from=rectangle]{south west}
+  \inheritanchor[from=rectangle]{north west}
+  \inheritanchor[from=rectangle]{south east}
+  \saveddimen{\offset}{
+    \pgfmathsetlength\pgf@x{
+      sqrt(2)/8*\block@scale*\block@width
+    }
+  }
+  \anchor{front}{
+    \pgf@process{\southwest}
+    \pgf@xa=.5\pgf@x
+    \pgf@ya=.5\pgf@y
+    \pgf@process{\northeast}
+    \pgf@x=.5\pgf@x
+    \pgf@y=.5\pgf@y
+    \advance \pgf@x by \pgf@xa
+    \advance \pgf@y by \pgf@ya
+    \advance \pgf@x by -\offset
+    \advance \pgf@y by -\offset
+  }
+  \anchor{front south west}{
+    \pgf@process{\southwest}
+    \advance \pgf@x by -\offset
+    \advance \pgf@y by -\offset
+  }
+  \anchor{back south west}{
+    \pgf@process{\southwest}
+    \advance \pgf@x by \offset
+    \advance \pgf@y by \offset
+  }
+  \anchor{front north east}{
+    \pgf@process{\northeast}
+    \advance \pgf@x by -\offset
+    \advance \pgf@y by -\offset
+  }
+  \anchor{back north east}{
+    \pgf@process{\northeast}
+    \advance \pgf@x by \offset
+    \advance \pgf@y by \offset
+  }
+  \anchor{front south east}{
+    \pgf@process{\northeast}
+    \pgf@xa=\pgf@x
+    \advance \pgf@xa by -\offset
+    \pgf@process{\southwest}
+    \advance \pgf@y by -\offset
+    \pgf@x=\pgf@xa
+  }
+  \anchor{back south east}{
+    \pgf@process{\northeast}
+    \pgf@xa=\pgf@x
+    \advance \pgf@xa by \offset
+    \pgf@process{\southwest}
+    \advance \pgf@y by \offset
+    \pgf@x=\pgf@xa
+  }
+  \anchor{front north west}{
+    \pgf@process{\southwest}
+    \pgf@xa=\pgf@x
+    \advance \pgf@xa by -\offset
+    \pgf@process{\northeast}
+    \advance \pgf@y by -\offset
+    \pgf@x=\pgf@xa
+  }
+  \anchor{back north west}{
+    \pgf@process{\southwest}
+    \pgf@xa=\pgf@x
+    \advance \pgf@xa by \offset
+    \pgf@process{\northeast}
+    \advance \pgf@y by \offset
+    \pgf@x=\pgf@xa
+  }
+  \backgroundpath{
+    \pgf@process{\southwest}
+    \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \pgf@process{\northeast}
+    \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \def\block@add@offset##1{
+      \pgfpointadd{##1}{\pgfqpoint{\offset}{\offset}}
+    }
+    \def\block@sub@offset##1{
+      \pgfpointadd{##1}{\pgfqpoint{-\offset}{-\offset}}
+    }
+    \def\block@southwest{\pgfqpoint{\pgf@xa}{\pgf@ya}}
+    \def\block@southeast{\pgfqpoint{\pgf@xb}{\pgf@ya}}
+    \def\block@northeast{\pgfqpoint{\pgf@xb}{\pgf@yb}}
+    \def\block@northwest{\pgfqpoint{\pgf@xa}{\pgf@yb}}
+    % main path
+    \pgfpathmoveto{\block@sub@offset{\block@southwest}}
+    \pgfpathlineto{\block@sub@offset{\block@southeast}}
+    \pgfpathlineto{\block@add@offset{\block@southeast}}
+    \pgfpathlineto{\block@add@offset{\block@northeast}}
+    \pgfpathlineto{\block@add@offset{\block@northwest}}
+    \pgfpathlineto{\block@sub@offset{\block@northwest}}
+    \pgfpathclose
+    % other edge
+    \pgfpathmoveto{\block@sub@offset{\block@northeast}}
+    \pgfpathlineto{\block@sub@offset{\block@northwest}}
+    \pgfpathmoveto{\block@sub@offset{\block@northeast}}
+    \pgfpathlineto{\block@sub@offset{\block@southeast}}
+    \pgfpathmoveto{\block@sub@offset{\block@northeast}}
+    \pgfpathlineto{\block@add@offset{\block@northeast}}
+  }
+  \foregroundpath{
+    % back plot
+    \ifx\block@back@plot\pgfutil@empty
+    \else
+      \pgfsetdash{{1mm}{1mm}}{0mm}
+      \pgfpathmoveto{\block@add@offset{\block@southwest}}
+      \pgfpathlineto{\block@sub@offset{\block@southwest}}
+      \pgfpathmoveto{\block@add@offset{\block@southwest}}
+      \pgfpathlineto{\block@add@offset{\block@northwest}}
+      \pgfpathmoveto{\block@add@offset{\block@southwest}}
+      \pgfpathlineto{\block@add@offset{\block@southeast}}
+      \pgfusepath{stroke}
+    \fi
+  }
+}
+
+\tikzset{
+  block/.code={\tikzset{/block plot/.cd, #1}
+    % scale
+    \pgfmathsetlengthmacro\scaled@width{\block@scale*\block@width}
+    \pgfmathsetlengthmacro\scaled@height{\block@scale*\block@height}
+    \pgfmathsetlengthmacro\scaled@channel{\block@scale*\block@channel}
+    % shift
+    \ifx\block@pre\pgfutil@empty
+    \else\ifx\block@align\pgfutil@empty
+    \else
+      \def\pre@temp##1##2{0.5*(\block@pre.##1)-0.5*(\block@pre.##2)}
+      \def\cur@temp##1{0.5*(##1, ##1)}
+      \def\pre@offset@x{\pre@temp{back north east}{back north west}}
+      \def\pre@offset@x@inv{\pre@temp{back north west}{back north east}}
+      \def\pre@offset@y{\pre@temp{back north west}{back south west}}
+      \def\pre@offset@y@inv{\pre@temp{back south west}{back north west}}
+      \def\pre@offset@z{\pre@temp{back north west}{front north west}}
+      \def\pre@offset@z@inv{\pre@temp{front north west}{back north west}}
+      \def\cur@offset@x{.5*(\scaled@channel, 0)}
+      \def\cur@offset@y{.5*(0, \scaled@height)}
+      \pgfmathsetlength\pgfutil@tempdima{sqrt(2)/4*\scaled@width}
+      \def\cur@offset@z{\cur@temp{\pgfutil@tempdima}}
+      \def\align@cmp##1{\pdf@strcmp{\block@align}{##1}=0}
+      \def\shift@style##1##2{
+        \expandafter\edef\csname block@shift@##1\endcsname{($##2$)}
+      }
+      \shift@style{xleft}{\pre@offset@z@inv + \cur@offset@z}
+      \shift@style{xright}{\pre@offset@z - \cur@offset@z}
+      \shift@style{xdown}{\pre@offset@y@inv + \cur@offset@y}
+      \shift@style{xup}{\pre@offset@y - \cur@offset@y}
+      \ifcsname block@shift@\block@align\endcsname
+        \tikzset{shift={\csname block@shift@\block@align\endcsname}}
+      \fi
+    \fi\fi
+    % general
+    \tikzset{
+      base block, draw, fill opacity=.2, thick,
+      minimum height=\scaled@height,
+      minimum width=\scaled@channel,
+    }
+  }
+}
+
+\def\block@label@upperleft@a{front north west}
+\def\block@label@upperleft@b{back north west}
+\def\block@label@upperright@a{front north east}
+\def\block@label@upperright@b{back north east}
+\def\block@label@lowerleft@a{front south west}
+\def\block@label@lowerleft@b{back south west}
+\def\block@label@lowerright@a{front south east}
+\def\block@label@lowerright@b{back south east}
+\def\block@label@frontwest@a{front south west}
+\def\block@label@frontwest@b{front north west}
+\def\block@label@fronteast@a{front south east}
+\def\block@label@fronteast@b{front north east}
+\def\block@label@backwest@a{back south west}
+\def\block@label@backwest@b{back north west}
+\def\block@label@backeast@a{back south east}
+\def\block@label@backeast@b{back north east}
+\def\block@label@frontsouth@a{front south west}
+\def\block@label@frontsouth@b{front south east}
+\def\block@label@frontnorth@a{front north west}
+\def\block@label@frontnorth@b{front north east}
+\def\block@label@backsouth@a{back south west}
+\def\block@label@backsouth@b{back south east}
+\def\block@label@backnorth@a{back north west}
+\def\block@label@backnorth@b{back north east}
+% #1 -- label position
+% #2 -- node name
+% #3 -- passed string
+% #4 -- label text
+% #5 -- edge specification
+\newcommand{\block@label}[4]{
+  \path (#2.\csname block@label@#3@a\endcsname) --
+        node[#1] {#4}
+        (#2.\csname block@label@#3@b\endcsname);
+}
+\def\block@label@position@upperleft{left}
+\def\block@label@position@upperright{right}
+\def\block@label@position@lowerleft{left}
+\def\block@label@position@lowerright{right}
+\def\block@label@position@frontwest{left}
+\def\block@label@position@fronteast{right}
+\def\block@label@position@backwest{left}
+\def\block@label@position@backeast{right}
+\def\block@label@position@frontnorth{above}
+\def\block@label@position@frontsouth{below}
+\def\block@label@position@backnorth{above}
+\def\block@label@position@backsouth{above}
+% #1 -- label position, optional
+% #2 -- node name
+% #3 -- passed string
+% #4 -- label text
+\newcommand{\blocklabel}[4][]{
+  \ifcsname block@label@position@#3\endcsname
+    \def\block@label@position{#1}
+    % use default position
+    \ifx\block@label@position\pgfutil@empty
+      \def\block@label@position{\csname block@label@position@#3\endcsname}
+    \fi
+    \block@label{\block@label@position}{#2}{#3}{#4}
+  \fi
+}
+\makeatother
+
