@@ -34,9 +34,7 @@ Add the code below to the preamble.
 
 ## Basic usage
 
-With `dnnplot`,  you are suppose to draw blocks from left to right, down to up and back to front, which are posit directions of x, y,​ and ​z​ axes respectively.
-
-
+With `dnnplot`,  you are supposed to draw blocks from left to right, down to up and back to front, which are posit directions of x, y,​ and ​z​ axes respectively.
 
 The block in `dnnplot` is a customized shape, which means you can use it as a node with lots of anchors and all the styles that can be set for node. The grammar is simple:
 
@@ -45,6 +43,8 @@ The block in `dnnplot` is a customized shape, which means you can use it as a no
 ```
 
 where `specification` is a list of `keys/values`.
+
+You can specify the length (or channels), width and height by `block={x=<length>, y=<length>, z=<length>}`, where `x, y, z` represent the length of edge that is paralleled to x, y, z axis respectively.
 
 Here is a primary example (MWE):
 
@@ -58,13 +58,13 @@ Here is a primary example (MWE):
   \draw[->, thick] (0, 0) -- (0, 4) node[right] {$y$};
   \draw[->, thick] (0, 0) -- (-2, -2) node[left] {$z$};
 \end{tikzpicture}
-\end{document}end{document}
+\end{document}
 ```
 
 We plot a base 3d block. 
 
 <p align="center">
-<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_base.png" alt="Basic use"  width=250>
+<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_basic.png" alt="Basic use"  width=300>
 	<p align="center">
 		<em>plot base block</em>
 	</p>
@@ -94,7 +94,7 @@ A variety of anchors have been defined. They are all shown as below.
     \fill[fill=green] (a.\a) circle (2pt) node[below] {\a};
   }
 \end{tikzpicture}
-\end{document}end{document}
+\end{document}
 ```
 
 
@@ -135,7 +135,7 @@ I define a command to annotate easily:
     backwest, backnorth, backsouth, upperleft, upperright, lowerleft, lowerright}
   {\blocklabel[font=\itshape]{a}{\l}{\l~label}}
 \end{tikzpicture}
-\end{document}end{document}
+\end{document}
 ```
 
   
@@ -163,7 +163,7 @@ I define a command to annotate easily:
   \node[A, fill=red, anchor=back south west] (a) at (0, 0) {};
   \node[fill=green, A={zshift=2.5cm}] at (a) {}; % shift half of width in z axis
 \end{tikzpicture}
-\end{document}end{document}
+\end{document}
 ```
 
 <p align="center">
@@ -191,7 +191,7 @@ I define a command to annotate easily:
   \node at (a.north) {A};
   \node at (b.north) {B};
 \end{tikzpicture}
-\end{document}end{document}
+\end{document}
 ```
 
 <p align="center">
