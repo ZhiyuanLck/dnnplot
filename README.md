@@ -1,5 +1,6 @@
-# `dnnplot`
-Plot 3d blocks in deep neural networks. Less code, better performance and easier control.
+[TOC]
+
+Plot 3d blocks in deep neural networks. Less code, better appearance and easier control.
 
 ## Load package
 
