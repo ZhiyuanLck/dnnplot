@@ -1,18 +1,23 @@
 \ProvidesPackage{dnnplot}
 \RequirePackage{pdftexcmds}
-\usetikzlibrary{math, calc}
 
 \makeatletter
-\let\pdfstrcmp=\pdf@strcmp
+\newif\ifback@plot
+\newif\ifplane@block
 \pgfkeys{/block plot/.cd,
-  width/.store in=\block@width, width=1cm,
-  height/.store in=\block@height, height=1cm,
-  channel/.store in=\block@channel, channel=1cm,
+  x/.store in=\block@xcoordinate, x=0cm,
+  y/.store in=\block@ycoordinate, y=0cm,
+  z/.store in=\block@zcoordinate, z=0cm,
   scale/.store in=\block@scale, scale=.5,
   pre/.store in=\block@pre, pre=,
-  align/.store in=\block@align, align=,
-  back plot/.store in=\block@back@plot, back plot=,
-  back plot/.default=true,
+  back plot/.is if=back@plot,
+  plane/.is if=plane@block,
+  zshift/.store in=\block@zshift, zshift=0,
+  front/.store in=\block@front, front=,
+  align axis/.store in=\block@align@axis, align axis=x,
+  hfactor/.store in=\block@hfactor, hfactor=.5,
+  vfactor/.store in=\block@vfactor, vfactor=.5,
+  align/.store in=\block@align, align=center,
 }
 
 \pgfdeclareshape{base block}
@@ -30,7 +35,7 @@
   \inheritanchor[from=rectangle]{south east}
   \saveddimen{\offset}{
     \pgfmathsetlength\pgf@x{
-      sqrt(2)/8*\block@scale*\block@width
+      sqrt(2)/8*\block@scale*\block@zcoordinate
     }
   }
   \anchor{front}{
@@ -44,6 +49,18 @@
     \advance \pgf@y by \pgf@ya
     \advance \pgf@x by -\offset
     \advance \pgf@y by -\offset
+  }
+  \anchor{back}{
+    \pgf@process{\southwest}
+    \pgf@xa=.5\pgf@x
+    \pgf@ya=.5\pgf@y
+    \pgf@process{\northeast}
+    \pgf@x=.5\pgf@x
+    \pgf@y=.5\pgf@y
+    \advance \pgf@x by \pgf@xa
+    \advance \pgf@y by \pgf@ya
+    \advance \pgf@x by \offset
+    \advance \pgf@y by \offset
   }
   \anchor{front south west}{
     \pgf@process{\southwest}
@@ -112,26 +129,55 @@
     \def\block@southeast{\pgfqpoint{\pgf@xb}{\pgf@ya}}
     \def\block@northeast{\pgfqpoint{\pgf@xb}{\pgf@yb}}
     \def\block@northwest{\pgfqpoint{\pgf@xa}{\pgf@yb}}
-    % main path
-    \pgfpathmoveto{\block@sub@offset{\block@southwest}}
-    \pgfpathlineto{\block@sub@offset{\block@southeast}}
-    \pgfpathlineto{\block@add@offset{\block@southeast}}
-    \pgfpathlineto{\block@add@offset{\block@northeast}}
-    \pgfpathlineto{\block@add@offset{\block@northwest}}
-    \pgfpathlineto{\block@sub@offset{\block@northwest}}
-    \pgfpathclose
-    % other edge
-    \pgfpathmoveto{\block@sub@offset{\block@northeast}}
-    \pgfpathlineto{\block@sub@offset{\block@northwest}}
-    \pgfpathmoveto{\block@sub@offset{\block@northeast}}
-    \pgfpathlineto{\block@sub@offset{\block@southeast}}
-    \pgfpathmoveto{\block@sub@offset{\block@northeast}}
-    \pgfpathlineto{\block@add@offset{\block@northeast}}
+
+    \ifplane@block
+      % plane block in y-z plane, x = 0
+      \ifdim\block@xcoordinate=0pt
+        \pgfpathmoveto{\block@sub@offset{\block@southwest}}
+        \pgfpathlineto{\block@add@offset{\block@southwest}}
+        \pgfpathlineto{\block@add@offset{\block@northwest}}
+        \pgfpathlineto{\block@sub@offset{\block@northwest}}
+        \pgfpathclose
+      \fi
+      % plane block in x-z plane, y = 0
+      \ifdim\block@ycoordinate=0pt
+        \pgfpathmoveto{\block@sub@offset{\block@southwest}}
+        \pgfpathlineto{\block@sub@offset{\block@southeast}}
+        \pgfpathlineto{\block@add@offset{\block@southeast}}
+        \pgfpathlineto{\block@add@offset{\block@southwest}}
+        \pgfpathclose
+      \fi
+      % plane block in x-y plane, z = 0
+      \ifdim\block@zcoordinate=0pt
+        \pgfpathmoveto{\block@sub@offset{\block@southwest}}
+        \pgfpathlineto{\block@sub@offset{\block@southeast}}
+        \pgfpathlineto{\block@sub@offset{\block@northeast}}
+        \pgfpathlineto{\block@sub@offset{\block@northwest}}
+        \pgfpathclose
+      \fi
+    \else
+      % main path
+      \pgfpathmoveto{\block@sub@offset{\block@southwest}}
+      \pgfpathlineto{\block@sub@offset{\block@southeast}}
+      \pgfpathlineto{\block@add@offset{\block@southeast}}
+      \pgfpathlineto{\block@add@offset{\block@northeast}}
+      \pgfpathlineto{\block@add@offset{\block@northwest}}
+      \pgfpathlineto{\block@sub@offset{\block@northwest}}
+      \pgfpathclose
+      % other edge
+      \pgfpathmoveto{\block@sub@offset{\block@northeast}}
+      \pgfpathlineto{\block@sub@offset{\block@northwest}}
+      \pgfpathmoveto{\block@sub@offset{\block@northeast}}
+      \pgfpathlineto{\block@sub@offset{\block@southeast}}
+      \pgfpathmoveto{\block@sub@offset{\block@northeast}}
+      \pgfpathlineto{\block@add@offset{\block@northeast}}
+    \fi
   }
   \foregroundpath{
     % back plot
-    \ifx\block@back@plot\pgfutil@empty
-    \else
+%     \ifx\block@back@plot\pgfutil@empty
+%     \else
+    \ifback@plot
       \pgfsetdash{{1mm}{1mm}}{0mm}
       \pgfpathmoveto{\block@add@offset{\block@southwest}}
       \pgfpathlineto{\block@sub@offset{\block@southwest}}
@@ -144,45 +190,158 @@
   }
 }
 
+\newcommand{\set@xy}[1]{%
+  \tikz@scan@one@point\pgfutil@firstofone(#1)\relax
+}
+% factor of length to z coordinate
+\pgfmathsetmacro\fc@z{sqrt(2)/4}
+
 \tikzset{
   block/.code={\tikzset{/block plot/.cd, #1}
     % scale
-    \pgfmathsetlengthmacro\scaled@width{\block@scale*\block@width}
-    \pgfmathsetlengthmacro\scaled@height{\block@scale*\block@height}
-    \pgfmathsetlengthmacro\scaled@channel{\block@scale*\block@channel}
+    \pgfmathsetlengthmacro\scaled@xcoordinate{\block@scale*\block@xcoordinate}
+    \pgfmathsetlengthmacro\scaled@ycoordinate{\block@scale*\block@ycoordinate}
+    \pgfmathsetlengthmacro\scaled@zcoordinate{\block@scale*\block@zcoordinate}
     % shift
+    % initial shift
+    \newdimen\block@xshift
+    \newdimen\block@yshift
+    \block@xshift=0pt \block@yshift=0pt
+    % shift in z axis
+    \pgfmathaddtolength\block@xshift{-\fc@z*\block@zshift}
+    \pgfmathaddtolength\block@yshift{-\fc@z*\block@zshift}
+    % pre
     \ifx\block@pre\pgfutil@empty
-    \else\ifx\block@align\pgfutil@empty
     \else
-      \def\pre@temp##1##2{0.5*(\block@pre.##1)-0.5*(\block@pre.##2)}
-      \def\cur@temp##1{0.5*(##1, ##1)}
-      \def\pre@offset@x{\pre@temp{back north east}{back north west}}
-      \def\pre@offset@x@inv{\pre@temp{back north west}{back north east}}
-      \def\pre@offset@y{\pre@temp{back north west}{back south west}}
-      \def\pre@offset@y@inv{\pre@temp{back south west}{back north west}}
-      \def\pre@offset@z{\pre@temp{back north west}{front north west}}
-      \def\pre@offset@z@inv{\pre@temp{front north west}{back north west}}
-      \def\cur@offset@x{.5*(\scaled@channel, 0)}
-      \def\cur@offset@y{.5*(0, \scaled@height)}
-      \pgfmathsetlength\pgfutil@tempdima{sqrt(2)/4*\scaled@width}
-      \def\cur@offset@z{\cur@temp{\pgfutil@tempdima}}
-      \def\align@cmp##1{\pdf@strcmp{\block@align}{##1}=0}
-      \def\shift@style##1##2{
-        \expandafter\edef\csname block@shift@##1\endcsname{($##2$)}
+      % define total xoffset and yoffset of previous and current node when
+      % applying alignment in different axis.
+      % ##1 pre, cur ##2 x, y, z axis ##3 x, y coordinate
+      \def\define@offset##1##2##3{
+        \expandafter\newdimen\csname ##1@offset@##2axis@##3\endcsname
       }
-      \shift@style{xleft}{\pre@offset@z@inv + \cur@offset@z}
-      \shift@style{xright}{\pre@offset@z - \cur@offset@z}
-      \shift@style{xdown}{\pre@offset@y@inv + \cur@offset@y}
-      \shift@style{xup}{\pre@offset@y - \cur@offset@y}
-      \ifcsname block@shift@\block@align\endcsname
-        \tikzset{shift={\csname block@shift@\block@align\endcsname}}
+      % although some of them are not needed at all.
+      \define@offset{pre}{x}{x}
+      \define@offset{pre}{x}{y}% 0
+      \define@offset{pre}{y}{x}% 0
+      \define@offset{pre}{y}{y}
+      \define@offset{pre}{z}{x}
+      \define@offset{pre}{z}{y}
+      \define@offset{cur}{x}{x}
+      \define@offset{cur}{x}{y}% 0
+      \define@offset{cur}{y}{x}% 0
+      \define@offset{cur}{y}{y}
+      \define@offset{cur}{z}{x}
+      \define@offset{cur}{z}{y}
+      % start and end point of offset vector
+      \def\xaxis@start{back north west}
+      \def\xaxis@end{back north east}
+      \def\yaxis@start{back south east}
+      \def\yaxis@end{back north east}
+      \def\zaxis@start{front}
+      \def\zaxis@end{back}
+      % set total offset by coordinates.
+      % set offset of previous node
+      % ##1 x, y, z axis ##2 x, y coordinate
+      \def\calc@pre@shift##1##2{
+        \set@xy{\block@pre.\csname ##1axis@start\endcsname}
+        \csname pgf@##2a\endcsname=\csname pgf@##2\endcsname
+        \set@xy{\block@pre.\csname ##1axis@end\endcsname}
+        \advance \csname pgf@##2\endcsname by -\csname pgf@##2a\endcsname
+        \csname pre@offset@##1axis@##2\endcsname=\csname pgf@##2\endcsname
+      }
+      \calc@pre@shift{x}{x}
+      \calc@pre@shift{x}{y}
+      \calc@pre@shift{y}{x}
+      \calc@pre@shift{y}{y}
+      \calc@pre@shift{z}{x}
+      \calc@pre@shift{z}{y}
+      % set offset of current node
+      \pgfmathsetlength\cur@offset@xaxis@x{\scaled@xcoordinate}
+      \pgfmathsetlength\cur@offset@yaxis@y{\scaled@ycoordinate}
+      \pgfmathsetlength\cur@offset@zaxis@x{\fc@z*\scaled@zcoordinate}
+      \pgfmathsetlength\cur@offset@zaxis@y{\fc@z*\scaled@zcoordinate}
+%       \cur@offset@xaxis@x=\scaled@xcoordinate
+%       \cur@offset@yaxis@y=\scaled@ycoordinate
+%       \cur@offset@zaxis@x=\fc@z\scaled@zcoordinate
+%       \cur@offset@zaxis@y=\fc@z\scaled@zcoordinate
+      % x,y coordinates of shift vector (with factor 1)
+      % ##1 x, y, z axis ##2 x, y coordinate
+      \def\define@shift##1##2{
+        \expandafter\newdimen\csname shift@##1axis@##2\endcsname
+      }
+      \define@shift{x}{x}
+      \define@shift{x}{y}% 0
+      \define@shift{y}{x}% 0
+      \define@shift{y}{y}
+      \define@shift{z}{x}
+      \define@shift{z}{y}
+      % ##1 x, y, z axis ##2 x, y coordinate
+      \def\calc@shift##1##2{
+        \csname shift@##1axis@##2\endcsname=\csname pre@offset@##1axis@##2\endcsname
+        \advance \csname shift@##1axis@##2\endcsname by -\csname cur@offset@##1axis@##2\endcsname\relax
+%         \expandafter\pgfmathaddtolength\csname shift@##1axis@##2\endcsname{-\expandafter\the\csname cur@offset@##1axis@##2\endcsname}
+      }
+      \calc@shift{x}{x}
+      \calc@shift{x}{y}
+      \calc@shift{y}{x}
+      \calc@shift{y}{y}
+      \calc@shift{z}{x}
+      \calc@shift{z}{y}
+      % front of shift
+      \ifx\block@front\pgfutil@empty
+      \else
+      \pgfkeysalso{at=(\block@pre.front), anchor=back}
+      \pgfmathaddtolength\block@xshift{-\fc@z*\block@front}
+      \pgfmathaddtolength\block@yshift{-\fc@z*\block@front}
       \fi
-    \fi\fi
+      % align shift
+      % align option has higher priority
+      % ##1 shift style ##2 hfactor ##3 vfactor
+      \def\shift@style##1##2##3{
+        \expandafter\def\csname block@shift@##1\endcsname{
+          \def\block@hfactor{##2}
+          \def\block@vfactor{##3}
+        }
+      }
+      \shift@style{left}{0}{0.5}
+      \shift@style{right}{1}{0.5}
+      \shift@style{down}{0.5}{0}
+      \shift@style{up}{0.5}{1}
+      \shift@style{upperleft}{0}{1}
+      \shift@style{upperright}{1}{1}
+      \shift@style{lowerleft}{0}{0}
+      \shift@style{lowerright}{1}{0}
+      \expandafter\ifcsname block@shift@\block@align\endcsname
+        \csname block@shift@\block@align\endcsname
+      \fi
+      % hshift and vshift in 3 directions
+      \pgfmathsetmacro\real@hfactor{\block@hfactor-0.5}
+      \pgfmathsetmacro\real@vfactor{\block@vfactor-0.5}
+      % ##1 x, y, z axis ##2 hvshift 3 4 shift x, y coordinate
+      \def\define@hv@shift##1##2##3##4{
+        \expandafter\newdimen\csname hshift@##1axis@##2\endcsname
+        \csname hshift@##1axis@##2\endcsname=\real@hfactor\csname shift@##3axis@##2\endcsname
+        \expandafter\newdimen\csname vshift@##1axis@##2\endcsname
+        \csname vshift@##1axis@##2\endcsname=\real@vfactor\csname shift@##4axis@##2\endcsname
+      }
+      \define@hv@shift{x}{x}{z}{y}
+      \define@hv@shift{x}{y}{z}{y}
+      \define@hv@shift{y}{x}{x}{z}
+      \define@hv@shift{y}{y}{x}{z}
+      \define@hv@shift{z}{x}{x}{y}
+      \define@hv@shift{z}{y}{x}{y}
+      \advance \block@xshift by \csname hshift@\block@align@axis axis@x\endcsname
+      \advance \block@xshift by \csname vshift@\block@align@axis axis@x\endcsname
+      \advance \block@yshift by \csname hshift@\block@align@axis axis@y\endcsname
+      \advance \block@yshift by \csname vshift@\block@align@axis axis@y\endcsname
+    \fi
     % general
-    \tikzset{
-      base block, draw, fill opacity=.2, thick,
-      minimum height=\scaled@height,
-      minimum width=\scaled@channel,
+    \pgfkeysalso{
+      shift={(\block@xshift, \block@yshift)},
+      inner sep=0,
+      base block, draw, fill opacity=.3, thick,
+      minimum height=\scaled@ycoordinate,
+      minimum width=\scaled@xcoordinate,
     }
   }
 }
@@ -239,12 +398,12 @@
 % #4 -- label text
 \newcommand{\blocklabel}[4][]{
   \ifcsname block@label@position@#3\endcsname
-    \def\block@label@position{#1}
+%     \def\block@label@position{#1}
     % use default position
-    \ifx\block@label@position\pgfutil@empty
-      \def\block@label@position{\csname block@label@position@#3\endcsname}
-    \fi
-    \block@label{\block@label@position}{#2}{#3}{#4}
+%     \ifx\block@label@position\pgfutil@empty
+    \def\block@label@position{\csname block@label@position@#3\endcsname}
+%     \fi
+    \block@label{\block@label@position, #1}{#2}{#3}{#4}
   \fi
 }
 \makeatother

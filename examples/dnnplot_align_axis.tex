@@ -1,0 +1,45 @@
+\documentclass[tikz, border=4mm]{standalone}
+\usetikzlibrary{positioning}
+\usepackage{dnnplot}
+\begin{document}
+\begin{tikzpicture}[font=\Large\bfseries]
+  \tikzset{
+    base/.style n args={4}{
+      block={scale=1, x=#1mm, y=#2mm, z=#3mm, #4}
+    },
+    O/.style={base={50}{80}{90}{#1}},
+    A/.style={fill=red, base={0}{80}{90}{plane, #1}},
+    B/.style={fill=blue, base={50}{0}{90}{plane, #1}},
+    C/.style={fill=green, base={50}{80}{0}{plane, #1}},
+    D/.style 2 args={fill=#1, base={15}{20}{30}{#2}},
+  }
+  \draw[->, thick] (0, 0) -- (9, 0) node[below] {$x$};
+  \draw[->, thick] (0, 0) -- (0, 13) node[right] {$y$};
+  \draw[->, thick] (0, 0) -- (-6, -6) node[left] {$z$};
+  \node[O, anchor=back south west] (a) at (0, 0) {};
+  \node[A, right=2cm of a] (x) {};
+  \node[B, above=2cm of a] (y) {};
+  \node[C={pre=a, front=4cm}] (z) {};
+  % block
+  \foreach \axis/\color in {x/red, y/blue}{
+    \foreach \align [count=\i] in {lowerleft, lowerright, upperleft}{
+      \node[D={\color}{pre=a, align axis=\axis, align=\align}] (\axis\i) at (\axis) {};
+    }
+  }
+  \foreach \align [count=\i] in {lowerleft, lowerright, upperleft}{
+    \node[D={green}{pre=a, align axis=z, align=\align}] (z\i) at (z) {};
+  }
+  % line
+\begin{scope}[line width=1.5pt]
+  \draw[<-, draw=red] (x.center) -- node[above] {look from right to left} +(6cm, 0);
+  \draw[<-, draw=blue] (y.center) -- node[right] {look from top to bottom} +(0, 4cm);
+  \draw[<-, draw=teal] (z.center) -- node[above=3mm, sloped] {look from front to back} +(-5cm, -5cm);
+  \draw[->, draw=red] (x1.center) -- node[below=5mm, sloped] {hshift} (x2.center);
+  \draw[->, draw=red] (x1.center) -- node[right] {vshift} (x3.center);
+  \draw[->, draw=blue] (y1.center) -- node[below] {hshift} (y2.center);
+  \draw[->, draw=blue] (y1.center) -- node[right] {vshift} (y3.center);
+  \draw[->, draw=teal] (z1.center) -- node[above] {hshift} (z2.center);
+  \draw[->, draw=teal] (z1.center) -- node[left] {vshift} (z3.center);
+\end{scope}
+\end{tikzpicture}
+\end{document}
