@@ -188,8 +188,8 @@ You can apply arbitrary alignment with the option `block={pre=<node name>, align
 
 1. `block={align axis=<axis>}`, `align axis` is set to `x` by default.
 - `align axis=x`: you are going to apply the alignment in the way that you are looking at the referenced block **from right to left**, and then you wish to align current block among left edge, right edge, ... etc. or just let the block to be center aligned.
-	- `align axis=y`: you are going to apply the alignment in the way that you are looking at the referenced block **from top to bottom**.
-	- `align axis=z`: you are going to apply the alignment in the way that you are looking at the referenced block **from front to  back**.
+- `align axis=y`: you are going to apply the alignment in the way that you are looking at the referenced block **from top to bottom**.
+- `align axis=z`: you are going to apply the alignment in the way that you are looking at the referenced block **from front to  back**.
 <p align="center">
 	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_align_axis.png" alt="align axis"  width=500>
 	<p align="center">
@@ -287,7 +287,7 @@ block={pre=<node name>, align axis=<axis>, align=<align specification}
 
 
 <p align="center">
-	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_align.png" alt="Alignment"  width="400">
+	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_align1.png" alt="Alignment"  width="400">
 	<p align="center">
 		<em>alignment</em>
 	</p>
