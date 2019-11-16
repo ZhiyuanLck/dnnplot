@@ -24,7 +24,15 @@ Plot 3d blocks in deep neural networks. Less code, better appearance and easier 
 
 ## Load package
 
-Add the code below to the preamble.
+1. Download the package.
+
+```shell
+git clone https://github.com/ZhiyuanLck/dnnplot.git
+```
+
+2. Copy `dnnplot.sty` in `dnnplot/src/`  to your root directory.
+
+3. Add the code below to the preamble.
 
 ```tex
 \usepackage{dnnplot}
