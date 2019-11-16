@@ -1,6 +1,26 @@
-[TOC]
+## dnnplot
 
 Plot 3d blocks in deep neural networks. Less code, better appearance and easier control.
+
+## Table of contents
+- [dnnplot](#dnnplot)
+- [Table of contents](#table-of-contents)
+- [Load package](#load-package)
+- [Basic usage](#basic-usage)
+- [Available anchors](#available-anchors)
+- [Annotation](#annotation)
+- [Shift in z axis](#shift-in-z-axis)
+- [Alignment](#alignment)
+  * [Arbitrary alignment](#arbitrary-alignment)
+  * [Quick alignment](#quick-alignment)
+  * [Shift and align the blocks in different axes](#shift-and-align-the-blocks-in-different-axes)
+  * [Note](#note)
+- [Plane block](#plane-block)
+- [Options](#options)
+  * [block](#block)
+  * [default node options](#default-node-options)
+- [To be added...](#to-be-added)
+- [Thanks](#thanks)
 
 ## Load package
 
