@@ -1,14 +1,21 @@
 \ProvidesPackage{dnnplot}
 \RequirePackage{pdftexcmds}
 \RequirePackage{tikz}
+\usetikzlibrary{fpu}
 
 \makeatletter
 \newif\ifback@plot
 \newif\ifplane@block
-% #1 parse mode #2 + or -
+\def\pgfmathparse@fpu#1{
+  \begingroup
+  \pgfkeys{/pgf/fpu, /pgf/fpu/output format=fixed}
+  \pgfmathparse{#1}
+  \pgfmathsmuggle\pgfmathresult
+  \endgroup
+}
 \def\grid@parse@temp#1#2{
   \long\expandafter\def\csname grid@parse@#1@temp\endcsname##1##2{
-    \pgfmathparse{##1comp(##2)}
+    \pgfmathparse@fpu{##1comp(##2)}
     \expandafter\pgfmathtruncatemacro\csname
     grid@#1@temp##1\endcsname{ifthenelse(\pgfmathresult #2 1, \pgfmathresult #2 1, 0)}
   }
@@ -27,19 +34,19 @@
 }
 \pgfmathdeclarefunction*{xcomp}{3}{
   \begingroup
-  \pgfmathparse{#1}
+  \pgfmathparse@fpu{#1}
   \pgfmathsmuggle\pgfmathresult
   \endgroup
 }
 \pgfmathdeclarefunction*{ycomp}{3}{
   \begingroup
-  \pgfmathparse{#2}
+  \pgfmathparse@fpu{#2}
   \pgfmathsmuggle\pgfmathresult
   \endgroup
 }
 \pgfmathdeclarefunction*{zcomp}{3}{
   \begingroup
-  \pgfmathparse{#3}
+  \pgfmathparse@fpu{#3}
   \pgfmathsmuggle\pgfmathresult
   \endgroup
 }
@@ -295,7 +302,7 @@
     }
     % back plot
     \def\back@plot@temp{
-      \pgfsetdash{{1mm}{1mm}}{0mm}
+      \pgfsetdash{{1pt}{1pt}}{0mm}
       \pgfpathmoveto{\block@add@offset{\block@southwest}}
       \pgfpathlineto{\block@sub@offset{\block@southwest}}
       \pgfpathmoveto{\block@add@offset{\block@southwest}}
@@ -329,7 +336,7 @@
         \def\if@back@plot{1}
         \pgfscope
           \pgfsetlinewidth{.5\pgflinewidth}
-          \pgfsetdash{{1mm}{1mm}}{0mm}
+          \pgfsetdash{{1pt}{1pt}}{0mm}
           \pgfpathmoveto{\grid@offset{\grid@for@temp}{0cm}{add}{northwest}}
           \pgfpathlineto{\grid@offset{\grid@for@temp}{0cm}{add}{southwest}}
           \pgfpathlineto{\grid@offset{\grid@for@temp}{0cm}{sub}{southwest}}
@@ -354,7 +361,7 @@
         \def\if@back@plot{1}
         \pgfscope
           \pgfsetlinewidth{.5\pgflinewidth}
-          \pgfsetdash{{1mm}{1mm}}{0mm}
+          \pgfsetdash{{1pt}{1pt}}{0mm}
           \pgfpathmoveto{\grid@offset{0cm}{\grid@for@temp}{add}{southeast}}
           \pgfpathlineto{\grid@offset{0cm}{\grid@for@temp}{add}{southwest}}
           \pgfpathlineto{\grid@offset{0cm}{\grid@for@temp}{sub}{southwest}}
@@ -379,7 +386,7 @@
         \def\if@back@plot{1}
         \pgfscope
           \pgfsetlinewidth{.5\pgflinewidth}
-          \pgfsetdash{{1mm}{1mm}}{0mm}
+          \pgfsetdash{{1pt}{1pt}}{0mm}
           \pgfpathmoveto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{southeast}}
           \pgfpathlineto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{southwest}}
           \pgfpathlineto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{northwest}}
@@ -537,8 +544,8 @@
     % general
     \pgfkeysalso{
       shift={(\block@xshift, \block@yshift)},
-      inner sep=0,
-      base block, draw, fill opacity=.3, thick,
+      inner sep=0, line width=.2pt,
+      base block, draw, fill opacity=.3,
       minimum height=\scaled@ycoordinate,
       minimum width=\scaled@xcoordinate,
     }

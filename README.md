@@ -407,7 +407,7 @@ Here is an example:
 ```
 
 <p align="center">
-	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_grid.png" alt="grid block"  width="400">
+	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_grid.png" alt="grid block"  width="600">
 	<p align="center">
 		<em>grid block</em>
 	</p>
@@ -437,11 +437,11 @@ Some options of node are set by default. If you want to overload them, please ad
 - `inner sep=0`
 - `draw`
 - `fill opacity=.3`
-- `thick`
+- `line width=.2pt`
 
 ## To be added...
 
-2. more shape (or you can pull a request)
+1. more shape (or you can pull a request)
 
 ## Thanks
 
