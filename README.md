@@ -16,6 +16,7 @@ Plot 3d blocks in deep neural networks. Less code, better appearance and easier 
   * [Shift and align the blocks in different axes](#shift-and-align-the-blocks-in-different-axes)
   * [Note](#note)
 - [Plane block](#plane-block)
+- [Grid block](#grid-block)
 - [Options](#options)
   * [block](#block)
   * [default node options](#default-node-options)
@@ -37,8 +38,6 @@ git clone https://github.com/ZhiyuanLck/dnnplot.git
 ```tex
 \usepackage{dnnplot}
 ```
-
-**Note**: `dnnplot` does not load `tikz` automatically. You need to load it manually.
 
 ## Basic usage
 
@@ -368,6 +367,52 @@ All the alignment options should set `block={pre=<node name>}` first. Otherwise,
 
 If you want a plane block in x-y plane, letting `z=0cm` (which is default so you can just ignore this option) seems to be a feasible way, but it may cause some little problem such as some lines are drawn a little wider. So, you'd better add the `block={plane}` option to avoid the case.
 
+## Grid block
+
+Set `block={grid={(<xnum>, <ynum>, <znum>)}}` to draw a grid block. You can combine `back plot` option with `grid` option to draw hidden lines. `<xnum>, <ynum>, <znum>` are the number of blocks in the direction of `x, y, z` axis.
+
+All anchors sitting on grid points are available by their names like `a+y-2-1`, where **`+`** represents we select the plane which has a greater `y coordinate`,  **`y`** represents `x-z` plane and **`-2-2`** represents coordinate on `x-z` plane.
+
+Here is an example:
+
+```tex
+\documentclass[tikz, border=4mm]{standalone}
+\usepackage{dnnplot}
+\usetikzlibrary{arrows.meta}
+\tikzset{
+  A/.style={
+    block={scale=2, x=4cm, y=3cm, z=3cm, grid={(4,3,3)}, back plot},
+  },
+  B/.style={fill=violet},
+  C/.style={fill=orange},
+}
+\begin{document}
+\begin{tikzpicture}
+  \node[A, fill=teal, anchor=back south west] (a) at (0, 0) {};
+  \begin{scope}[->, thick]
+    \draw (0, 0) -- (9, 0) node[below] {$x$};
+    \draw (0, 0) -- (0, 7) node[right] {$y$};
+    \draw (0, 0) -- (-3.5, -3.5) node[left] {$z$};
+  \end{scope}
+  \foreach \x in {x, y, z}{
+    \draw[red, -Stealth, thick] (a-\x-2-1) -- (a+\x-2-1);
+  }
+  \foreach \s/\o in {B/+, C/-}{
+    \foreach \x in {x, y, z}{
+      \fill[\s] (a\o\x-2-1) node[below right, font=\bfseries] {a\o\x-2-1} circle (2pt);
+    }
+  }
+\end{tikzpicture}
+\end{document}
+```
+
+<p align="center">
+	<img src="https://zhiyuan13-1258455953.cos.ap-chengdu.myqcloud.com/dnnplot/dnnplot_grid.png" alt="grid block"  width="400">
+	<p align="center">
+		<em>grid block</em>
+	</p>
+</p>
+
 ## Options
 
 ### block
@@ -383,6 +428,7 @@ If you want a plane block in x-y plane, letting `z=0cm` (which is default so you
 - `align`: quick style of alignment.
 - `back plot`: draw hidden edges  as dashed lines.
 - `plane`: draw plane block, i. e.  3d rectangle.
+- `grid`: draw a grid block, default `{(1, 1, 1)}`.
 
 ### default node options
 
@@ -395,7 +441,6 @@ Some options of node are set by default. If you want to overload them, please ad
 
 ## To be added...
 
-1. grid block
 2. more shape (or you can pull a request)
 
 ## Thanks

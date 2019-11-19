@@ -1,9 +1,48 @@
 \ProvidesPackage{dnnplot}
 \RequirePackage{pdftexcmds}
+\RequirePackage{tikz}
 
 \makeatletter
 \newif\ifback@plot
 \newif\ifplane@block
+% #1 parse mode #2 + or -
+\def\grid@parse@temp#1#2{
+  \long\expandafter\def\csname grid@parse@#1@temp\endcsname##1##2{
+    \pgfmathparse{##1comp(##2)}
+    \expandafter\pgfmathtruncatemacro\csname
+    grid@#1@temp##1\endcsname{ifthenelse(\pgfmathresult #2 1, \pgfmathresult #2 1, 0)}
+  }
+}
+\grid@parse@temp{line}{-}
+\long\def\grid@parse@line(#1){
+  \grid@parse@line@temp{x}{#1}
+  \grid@parse@line@temp{y}{#1}
+  \grid@parse@line@temp{z}{#1}
+}
+\grid@parse@temp{anchor}{+}
+\long\def\grid@parse@anchor(#1){
+  \grid@parse@anchor@temp{x}{#1}
+  \grid@parse@anchor@temp{y}{#1}
+  \grid@parse@anchor@temp{z}{#1}
+}
+\pgfmathdeclarefunction*{xcomp}{3}{
+  \begingroup
+  \pgfmathparse{#1}
+  \pgfmathsmuggle\pgfmathresult
+  \endgroup
+}
+\pgfmathdeclarefunction*{ycomp}{3}{
+  \begingroup
+  \pgfmathparse{#2}
+  \pgfmathsmuggle\pgfmathresult
+  \endgroup
+}
+\pgfmathdeclarefunction*{zcomp}{3}{
+  \begingroup
+  \pgfmathparse{#3}
+  \pgfmathsmuggle\pgfmathresult
+  \endgroup
+}
 \pgfkeys{/block plot/.cd,
   x/.store in=\block@xcoordinate, x=0cm,
   y/.store in=\block@ycoordinate, y=0cm,
@@ -18,6 +57,7 @@
   hfactor/.store in=\block@hfactor, hfactor=.5,
   vfactor/.store in=\block@vfactor, vfactor=.5,
   align/.store in=\block@align, align=center,
+  grid/.store in=\block@grid, grid={(1,1,1)},
 }
 
 \pgfdeclareshape{base block}
@@ -37,6 +77,18 @@
     \pgfmathsetlength\pgf@x{
       sqrt(2)/8*\block@scale*\block@zcoordinate
     }
+  }
+  \saveddimen{\grid@xsep}{
+    \expandafter\grid@parse@line\block@grid
+    \pgfmathsetlength\pgf@x{\block@scale/(\grid@line@tempx+1)*\block@xcoordinate}
+  }
+  \saveddimen{\grid@ysep}{
+    \expandafter\grid@parse@line\block@grid
+    \pgfmathsetlength\pgf@x{\block@scale/(\grid@line@tempy+1)*\block@ycoordinate}
+  }
+  \saveddimen{\grid@zsep}{
+    \expandafter\grid@parse@line\block@grid
+    \pgfmathsetlength\pgf@x{sqrt(2)/4*\block@scale/(\grid@line@tempz+1)*\block@zcoordinate}
   }
   \anchor{front}{
     \pgf@process{\southwest}
@@ -116,19 +168,21 @@
   }
   \backgroundpath{
     \pgf@process{\southwest}
-    \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \pgfmathsetlengthmacro\block@xa{\pgf@x}
+    \pgfmathsetlengthmacro\block@ya{\pgf@y}
     \pgf@process{\northeast}
-    \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    \pgfmathsetlengthmacro\block@xb{\pgf@x}
+    \pgfmathsetlengthmacro\block@yb{\pgf@y}
     \def\block@add@offset##1{
       \pgfpointadd{##1}{\pgfqpoint{\offset}{\offset}}
     }
     \def\block@sub@offset##1{
       \pgfpointadd{##1}{\pgfqpoint{-\offset}{-\offset}}
     }
-    \def\block@southwest{\pgfqpoint{\pgf@xa}{\pgf@ya}}
-    \def\block@southeast{\pgfqpoint{\pgf@xb}{\pgf@ya}}
-    \def\block@northeast{\pgfqpoint{\pgf@xb}{\pgf@yb}}
-    \def\block@northwest{\pgfqpoint{\pgf@xa}{\pgf@yb}}
+    \def\block@southwest{\pgfqpoint{\block@xa}{\block@ya}}
+    \def\block@southeast{\pgfqpoint{\block@xb}{\block@ya}}
+    \def\block@northeast{\pgfqpoint{\block@xb}{\block@yb}}
+    \def\block@northwest{\pgfqpoint{\block@xa}{\block@yb}}
 
     \ifplane@block
       % plane block in y-z plane, x = 0
@@ -174,10 +228,73 @@
     \fi
   }
   \foregroundpath{
+    % grid anchor
+    \expandafter\grid@parse@anchor\block@grid
+    % ##1 ##2 ##3 xyz ##4 +, - ##5 other
+    \def\anchor@loop##1##2##3##4##5{
+      \expandafter\foreach \csname grid@iter##1\endcsname [parse=true] in
+      {0, ...,\csname grid@anchor@temp##1\endcsname-1}{
+        \expandafter\foreach \csname grid@iter##2\endcsname [parse=true] in
+        {0, ...,\csname grid@anchor@temp##2\endcsname-1}{##5
+          \pgfcoordinate{\tikz@fig@name##4##3-\csname
+          grid@iter##1\endcsname-\csname grid@iter##2\endcsname}
+          {\pgfqpoint{\pgf@x}{\pgf@y}}
+        }
+      }
+    }
+    % x-y anchor
+    \anchor@loop{x}{y}{z}{+}{
+      \pgf@process{\southwest}
+      \advance \pgf@x by -\offset
+      \advance \pgf@y by -\offset
+      \pgfmathsetlength\pgf@x{\pgf@x+\grid@iterx*\grid@xsep}
+      \pgfmathsetlength\pgf@y{\pgf@y+\grid@itery*\grid@ysep}
+    }
+    \anchor@loop{x}{y}{z}{-}{
+      \pgf@process{\southwest}
+      \advance \pgf@x by \offset
+      \advance \pgf@y by \offset
+      \pgfmathsetlength\pgf@x{\pgf@x+\grid@iterx*\grid@xsep}
+      \pgfmathsetlength\pgf@y{\pgf@y+\grid@itery*\grid@ysep}
+    }
+    % z-y anchor
+    \anchor@loop{z}{y}{x}{+}{
+      \pgf@process{\northeast}
+      \pgf@xa=\pgf@x
+      \advance \pgf@xa by -\offset
+      \pgf@process{\southwest}
+      \advance \pgf@y by -\offset
+      \pgf@x=\pgf@xa
+      \pgfmathsetlength\pgf@x{\pgf@x+\grid@iterz*\grid@zsep}
+      \pgfmathsetlength\pgf@y{\pgf@y+\grid@itery*\grid@ysep+\grid@iterz*\grid@zsep}
+    }
+    \anchor@loop{z}{y}{x}{-}{
+      \pgf@process{\southwest}
+      \advance \pgf@x by -\offset
+      \advance \pgf@y by -\offset
+      \pgfmathsetlength\pgf@x{\pgf@x+\grid@iterz*\grid@zsep}
+      \pgfmathsetlength\pgf@y{\pgf@y+\grid@itery*\grid@ysep+\grid@iterz*\grid@zsep}
+    }
+    % x-z anchor
+    \anchor@loop{x}{z}{y}{+}{
+      \pgf@process{\southwest}
+      \pgf@xa=\pgf@x
+      \advance \pgf@xa by -\offset
+      \pgf@process{\northeast}
+      \advance \pgf@y by -\offset
+      \pgf@x=\pgf@xa
+      \pgfmathsetlength\pgf@x{\pgf@x+\grid@iterx*\grid@xsep+\grid@iterz*\grid@zsep}
+      \pgfmathsetlength\pgf@y{\pgf@y+\grid@iterz*\grid@zsep}
+    }
+    \anchor@loop{x}{z}{y}{-}{
+      \pgf@process{\southwest}
+      \advance \pgf@x by -\offset
+      \advance \pgf@y by -\offset
+      \pgfmathsetlength\pgf@x{\pgf@x+\grid@iterx*\grid@xsep+\grid@iterz*\grid@zsep}
+      \pgfmathsetlength\pgf@y{\pgf@y+\grid@iterz*\grid@zsep}
+    }
     % back plot
-%     \ifx\block@back@plot\pgfutil@empty
-%     \else
-    \ifback@plot
+    \def\back@plot@temp{
       \pgfsetdash{{1mm}{1mm}}{0mm}
       \pgfpathmoveto{\block@add@offset{\block@southwest}}
       \pgfpathlineto{\block@sub@offset{\block@southwest}}
@@ -186,7 +303,94 @@
       \pgfpathmoveto{\block@add@offset{\block@southwest}}
       \pgfpathlineto{\block@add@offset{\block@southeast}}
       \pgfusepath{stroke}
+    }
+    \def\if@back@plot{0}
+    \ifback@plot
+      \def\if@back@plot{1}
     \fi
+    %grid
+    \expandafter\grid@parse@line\block@grid
+    \def\grid@offset##1##2##3##4{
+      \pgfpointadd{\pgfqpoint{##1}{##2}}{\csname block@##3@offset\endcsname{\csname block@##4\endcsname}}
+    }
+    % x axis
+    \ifnum\grid@line@tempx>0
+      \foreach \grid@i in {1, ..., \grid@line@tempx}{
+        \pgfmathsetlengthmacro\grid@for@temp{\grid@i*\grid@xsep}
+        \pgfscope
+          \pgfsetlinewidth{.5\pgflinewidth}
+          \pgfpathmoveto{\grid@offset{\grid@for@temp}{0cm}{sub}{southwest}}
+          \pgfpathlineto{\grid@offset{\grid@for@temp}{0cm}{sub}{northwest}}
+          \pgfpathlineto{\grid@offset{\grid@for@temp}{0cm}{add}{northwest}}
+          \pgfusepath{stroke}
+        \endpgfscope
+        % back plot
+        \ifback@plot
+        \def\if@back@plot{1}
+        \pgfscope
+          \pgfsetlinewidth{.5\pgflinewidth}
+          \pgfsetdash{{1mm}{1mm}}{0mm}
+          \pgfpathmoveto{\grid@offset{\grid@for@temp}{0cm}{add}{northwest}}
+          \pgfpathlineto{\grid@offset{\grid@for@temp}{0cm}{add}{southwest}}
+          \pgfpathlineto{\grid@offset{\grid@for@temp}{0cm}{sub}{southwest}}
+          \pgfusepath{stroke}
+        \endpgfscope
+        \fi
+      }
+    \fi
+    % y axis
+    \ifnum\grid@line@tempy>0
+      \foreach \grid@i in {1, ..., \grid@line@tempy}{
+        \pgfmathsetlengthmacro\grid@for@temp{\grid@i*\grid@ysep}
+        \pgfscope
+          \pgfsetlinewidth{.5\pgflinewidth}
+          \pgfpathmoveto{\grid@offset{0cm}{\grid@for@temp}{sub}{southwest}}
+          \pgfpathlineto{\grid@offset{0cm}{\grid@for@temp}{sub}{southeast}}
+          \pgfpathlineto{\grid@offset{0cm}{\grid@for@temp}{add}{southeast}}
+          \pgfusepath{stroke}
+        \endpgfscope
+        % back plot
+        \ifback@plot
+        \def\if@back@plot{1}
+        \pgfscope
+          \pgfsetlinewidth{.5\pgflinewidth}
+          \pgfsetdash{{1mm}{1mm}}{0mm}
+          \pgfpathmoveto{\grid@offset{0cm}{\grid@for@temp}{add}{southeast}}
+          \pgfpathlineto{\grid@offset{0cm}{\grid@for@temp}{add}{southwest}}
+          \pgfpathlineto{\grid@offset{0cm}{\grid@for@temp}{sub}{southwest}}
+          \pgfusepath{stroke}
+        \endpgfscope
+        \fi
+      }
+    \fi
+    % z axis
+    \ifnum\grid@line@tempz>0
+      \foreach \grid@i in {1, ..., \grid@line@tempz}{
+        \pgfmathsetlengthmacro\grid@for@temp{\grid@i*\grid@zsep}
+        \pgfscope
+          \pgfsetlinewidth{.5\pgflinewidth}
+          \pgfpathmoveto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{northwest}}
+          \pgfpathlineto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{northeast}}
+          \pgfpathlineto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{southeast}}
+          \pgfusepath{stroke}
+        \endpgfscope
+        % back plot
+        \ifback@plot
+        \def\if@back@plot{1}
+        \pgfscope
+          \pgfsetlinewidth{.5\pgflinewidth}
+          \pgfsetdash{{1mm}{1mm}}{0mm}
+          \pgfpathmoveto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{southeast}}
+          \pgfpathlineto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{southwest}}
+          \pgfpathlineto{\grid@offset{\grid@for@temp}{\grid@for@temp}{sub}{northwest}}
+          \pgfusepath{stroke}
+        \endpgfscope
+        \fi
+      }
+    \fi
+    \ifnum\if@back@plot=1
+     \back@plot@temp
+   \fi
   }
 }
 
@@ -260,10 +464,6 @@
       \pgfmathsetlength\cur@offset@yaxis@y{\scaled@ycoordinate}
       \pgfmathsetlength\cur@offset@zaxis@x{\fc@z*\scaled@zcoordinate}
       \pgfmathsetlength\cur@offset@zaxis@y{\fc@z*\scaled@zcoordinate}
-%       \cur@offset@xaxis@x=\scaled@xcoordinate
-%       \cur@offset@yaxis@y=\scaled@ycoordinate
-%       \cur@offset@zaxis@x=\fc@z\scaled@zcoordinate
-%       \cur@offset@zaxis@y=\fc@z\scaled@zcoordinate
       % x,y coordinates of shift vector (with factor 1)
       % ##1 x, y, z axis ##2 x, y coordinate
       \def\define@shift##1##2{
@@ -279,7 +479,6 @@
       \def\calc@shift##1##2{
         \csname shift@##1axis@##2\endcsname=\csname pre@offset@##1axis@##2\endcsname
         \advance \csname shift@##1axis@##2\endcsname by -\csname cur@offset@##1axis@##2\endcsname\relax
-%         \expandafter\pgfmathaddtolength\csname shift@##1axis@##2\endcsname{-\expandafter\the\csname cur@offset@##1axis@##2\endcsname}
       }
       \calc@shift{x}{x}
       \calc@shift{x}{y}
